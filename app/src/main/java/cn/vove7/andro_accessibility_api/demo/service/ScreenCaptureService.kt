@@ -22,7 +22,48 @@ class ScreenCaptureService : Service() {
     private var mediaProjection: MediaProjection? = null
     private var virtualDisplay: VirtualDisplay? = null
     private var imageReader: ImageReader? = null
+    companion object {
+        @Volatile
+        var mediaProjection: MediaProjection? = null
 
+        /**
+         * Capture the screen using the stored [mediaProjection] and return the
+         * base64 encoded PNG via [onCaptured]. When projection is not available
+         * the callback receives null.
+         */
+        fun captureScreen(context: Context, onCaptured: (String?) -> Unit) {
+            val mp = mediaProjection ?: run {
+                onCaptured(null)
+                return
+            }
+
+            val metrics = context.resources.displayMetrics
+            val width = metrics.widthPixels
+            val height = metrics.heightPixels
+
+            val reader = ImageReader.newInstance(width, height, 1, 2)
+            val display = mp.createVirtualDisplay(
+                "ScreenCapture",
+                width, height, metrics.densityDpi,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                reader.surface, null, null
+            )
+
+            Handler(Looper.getMainLooper()).postDelayed({
+                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                PixelCopy.request(reader.surface, bitmap, { result ->
+                    val base64 = if (result == PixelCopy.SUCCESS) {
+                        val out = ByteArrayOutputStream()
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, out)
+                        Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP)
+                    } else null
+                    onCaptured(base64)
+                    display.release()
+                    reader.close()
+                }, Handler(Looper.getMainLooper()))
+            }, 500)
+        }
+    }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         startForegroundService()
 
@@ -31,7 +72,7 @@ class ScreenCaptureService : Service() {
 
         val mediaProjectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
         mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data!!)
-
+        ScreenCaptureService.mediaProjection = mediaProjection
         captureScreen { base64Image ->
             Log.d("ScreenCaptureService", "Screenshot Base64: $base64Image")
             stopSelf() // 截图完成后停止服务

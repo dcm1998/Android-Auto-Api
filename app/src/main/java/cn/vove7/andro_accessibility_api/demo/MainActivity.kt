@@ -24,6 +24,7 @@ import kotlinx.coroutines.Job
 import java.io.ByteArrayOutputStream
 import android.util.Base64
 import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Surface
@@ -141,10 +142,16 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == 1001 && resultCode == Activity.RESULT_OK && data != null) {
+//            ScreenCaptureService.mediaProjection =
+//                mediaProjectionManager.getMediaProjection(resultCode, data)
             val intent = Intent(this, ScreenCaptureService::class.java)
             intent.putExtra("resultCode", resultCode)
             intent.putExtra("data", data)
-//            startForegroundService(intent) // 启动前台服务
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
         }
     }
 }
