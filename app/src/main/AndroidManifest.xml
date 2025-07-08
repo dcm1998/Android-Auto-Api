@@ -3,6 +3,8 @@
     package="cn.vove7.andro_accessibility_api.demo">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.INTERNET"/>
     <queries>
         <package android:name="com.android.chrome" />
     </queries>
@@ -10,6 +12,7 @@
         android:name=".MyInstrumentation"
         android:targetPackage="${applicationId}" />
     <application
+        android:usesCleartextTraffic="true"
         android:name=".DemoApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -50,6 +53,16 @@
             android:name=".service.ScreenCaptureService"
             android:foregroundServiceType="mediaProjection"
             android:exported="false"/>
+        <service
+            android:name=".service.WebSocketService"
+            android:exported="false"/>
+        <receiver
+            android:name=".service.BootCompletedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

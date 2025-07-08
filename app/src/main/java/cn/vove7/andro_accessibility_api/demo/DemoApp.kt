@@ -6,6 +6,7 @@ import android.os.Build
 import cn.vove7.andro_accessibility_api.AccessibilityApi
 import cn.vove7.andro_accessibility_api.demo.service.AppAccessibilityService
 import cn.vove7.andro_accessibility_api.demo.service.ForegroundService
+import cn.vove7.andro_accessibility_api.demo.service.WebSocketService
 import timber.log.Timber
 
 /**
@@ -35,8 +36,10 @@ class DemoApp : Application() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(Intent(this, ForegroundService::class.java))
+            startForegroundService(Intent(this, WebSocketService::class.java))
         } else {
             startService(Intent(this, ForegroundService::class.java))
+            startService(Intent(this, WebSocketService::class.java))
         }
         Timber.i("DemoApp create.")
     }
