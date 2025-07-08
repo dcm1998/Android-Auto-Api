@@ -35,8 +35,10 @@ class DemoApp : Application() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(Intent(this, ForegroundService::class.java))
+            startForegroundService(Intent(this, WebSocketService::class.java))
         } else {
             startService(Intent(this, ForegroundService::class.java))
+            startService(Intent(this, WebSocketService::class.java))
         }
         Timber.i("DemoApp create.")
     }
